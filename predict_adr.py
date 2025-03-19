@@ -63,7 +63,7 @@ def get_user_input():
         "dose_duration": safe_input("⏳ Dose Duration (e.g., 6 months): "),
         "comorbidities": safe_input("🩺 Comorbidities (if any, else 'None'): "),
         "lifestyle_factors": safe_input("🏋️ Lifestyle Factors (e.g., smoker, None): "),
-        "pregnancy": safe_input("🤰 Pregnancy (yes/no): ", allowed_values=["yes", "no"]),
+        "pregnancy": safe_input("🤰 Pregnancy (yes/no): ", allowed_values=["yes", "no","none"]),
         "pregnancy_month": safe_input("📆 Pregnancy Month (if applicable, else 0): ", int),
         "ast(10-40)": safe_input("🩸 AST Value (10-40): ", int),
         "alt(5-30)": safe_input("🩸 ALT Value (5-30): ", int),
