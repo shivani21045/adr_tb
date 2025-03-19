@@ -25,6 +25,7 @@ df.fillna({
     "concomitant_medicine": "Unknown"
 }, inplace=True)
 
+
 # Fill missing numerical values with the median
 for col in ["weight", "ast(10-40)", "alt(5-30)", "alp(150-280)"]:
     df[col].fillna(df[col].median(), inplace=True)
