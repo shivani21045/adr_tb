@@ -135,6 +135,7 @@ def save_data(user_data, prediction):
     user_data["pharmacodynamics"] = prediction[0][4]
     user_data["drug_interactions"] = prediction[0][5]
 
+
     # Convert to DataFrame and append to existing data
     new_data = pd.DataFrame([user_data])
     existing_data = pd.concat([existing_data, new_data], ignore_index=True)
