@@ -5,7 +5,6 @@ import pandas as pd
 from rich.console import Console
 from rich.table import Table
 from colorama import Fore, Style, init
-
 # Initialize Colorama
 init(autoreset=True)
 
@@ -63,7 +62,7 @@ def get_user_input():
         "dose_duration": safe_input("⏳ Dose Duration (e.g., 6 months): "),
         "comorbidities": safe_input("🩺 Comorbidities (if any, else 'None'): "),
         "lifestyle_factors": safe_input("🏋️ Lifestyle Factors (e.g., smoker, None): "),
-        "pregnancy": safe_input("🤰 Pregnancy (yes/no): ", allowed_values=["yes", "no","none"]),
+        "pregnancy": safe_input("🤰 Pregnancy (yes/none): ", allowed_values=["yes","none"]),
         "pregnancy_month": safe_input("📆 Pregnancy Month (if applicable, else 0): ", int),
         "ast(10-40)": safe_input("🩸 AST Value (10-40): ", int),
         "alt(5-30)": safe_input("🩸 ALT Value (5-30): ", int),
@@ -87,61 +86,76 @@ def get_user_input():
     return user_data, input_array
 
 # Predict ADR, Symptoms, Suggestions, Pharmacokinetics, Pharmacodynamics, Drug Interactions
+# Predict ADR, Symptoms, Suggestions, Pharmacokinetics, Pharmacodynamics, Drug Interactions
 def predict_adr():
     user_data, user_input = get_user_input()
-    prediction = model.predict(user_input)
+    predictions = model.predict(user_input)
 
-    # Extract prediction results
-    adr_result = prediction[0][0]  # ADR result
-    drug_interaction_result = f"{prediction[0][5]} (if any)"  # Add "(if any)" to drug interactions
+    # Extract prediction results (assuming multiple ADRs are possible)
+    adr_results = predictions[0][0]  # Extract the ADR list
 
-    # Create a nice-looking table using rich
+    if isinstance(adr_results, str):
+        adr_text = adr_results  # Keep as string
+    elif isinstance(adr_results, (list, np.ndarray)):
+        adr_text = ", ".join(adr_results)  # Join multiple ADRs
+    else:
+        adr_text = "None"
+
+    # Create a table for better visualization
     table = Table(title="🔬 **PREDICTION RESULTS**", title_style="bold magenta")
 
     table.add_column("🩸 Parameter", justify="left", style="cyan", no_wrap=True)
     table.add_column("📊 Prediction", justify="center", style="bold yellow")
 
-    table.add_row("Adverse Drug Reactions", f"{prediction[0][0]}")
-    table.add_row("Symptoms", f"{prediction[0][1]}")
-    table.add_row("Medical Suggestions", f"{prediction[0][2]}")
-    table.add_row("Pharmacokinetics", f"{prediction[0][3]}")
-    table.add_row("Pharmacodynamics", f"{prediction[0][4]}")
-    table.add_row("Drug Interactions", drug_interaction_result)
+    table.add_row("Adverse Drug Reactions", adr_text)
+    table.add_row("Symptoms", f"{predictions[0][1]}")
+    table.add_row("Medical Suggestions", f"{predictions[0][2]}")
+    table.add_row("Pharmacokinetics", f"{predictions[0][3]}")
+    table.add_row("Pharmacodynamics", f"{predictions[0][4]}")
+    table.add_row("Drug Interactions", f"{predictions[0][5]} (if any)")
 
     console.print("\n")
     console.print(table)
     console.print("\n")
 
-    # Voice output based on ADR result
-    if adr_result.lower() == "none":
-        speak("Adverse Drug Reaction is NOT detected! The drug is likely safe.")
-        print(Fore.GREEN + Style.BRIGHT + "✅ ADR is NOT detected! The drug is likely safe.")
+    # Voice output based on multiple ADR results
+    if adr_text.lower() == "none":
+        speak("No Adverse Drug Reaction detected. The drug is likely safe.")
+        print(Fore.GREEN + Style.BRIGHT + "✅ No ADR detected! The drug is likely safe.")
     else:
-        speak("WARNING: Adverse Drug Reaction detected!.")
-        print(Fore.RED + Style.BRIGHT + "⚠️ WARNING: ADR detected!.")
+        speak(f"WARNING: Detected Adverse Drug Reactions: {adr_text}")
+        speak(adr_text)
+        speak(predictions[0][1])
+        speak(predictions[0][2])
+        speak(predictions[0][3])
+        speak(predictions[0][4])
+        speak(predictions[0][5])
+        print(Fore.RED + Style.BRIGHT + f"⚠️ WARNING: Detected ADRs: {adr_text}")
+
+        print("Full Model Output:", predictions)
 
     # Save input + output to dataset
-    save_data(user_data, prediction)
+    # save_data(user_data, predictions)
 
 # Function to save data to dataset
-def save_data(user_data, prediction):
-    global existing_data
-
-    # Add prediction results to user data
-    user_data["adr"] = prediction[0][0]
-    user_data["symptoms"] = prediction[0][1]
-    user_data["suggestions"] = prediction[0][2]
-    user_data["pharmacokinetics"] = prediction[0][3]
-    user_data["pharmacodynamics"] = prediction[0][4]
-    user_data["drug_interactions"] = prediction[0][5]
-
-    # Convert to DataFrame and append to existing data
-    new_data = pd.DataFrame([user_data])
-    existing_data = pd.concat([existing_data, new_data], ignore_index=True)
-
-    # Save to CSV
-    existing_data.to_csv(dataset_file, index=False)
-    print(Fore.CYAN + "📁 Data saved successfully! The dataset has been updated.\n")
+# def save_data(user_data, prediction):
+#     global existing_data
+#
+#     # Add prediction results to user data
+#     user_data["adr"] = prediction[0][0]
+#     user_data["symptoms"] = prediction[0][1]
+#     user_data["suggestions"] = prediction[0][2]
+#     user_data["pharmacokinetics"] = prediction[0][3]
+#     user_data["pharmacodynamics"] = prediction[0][4]
+#     user_data["drug_interactions"] = prediction[0][5]
+#
+#     # Convert to DataFrame and append to existing data
+#     new_data = pd.DataFrame([user_data])
+#     existing_data = pd.concat([existing_data, new_data], ignore_index=True)
+#
+#     # Save to CSV
+#     existing_data.to_csv(dataset_file, index=False)
+#     print(Fore.CYAN + "📁 Data saved successfully! The dataset has been updated.\n")
 
 # Loop to allow multiple predictions
 while True:
