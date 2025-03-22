@@ -1,55 +1,44 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder
+from sklearn.feature_extraction.text import TfidfVectorizer
 import joblib
 
 # Load dataset
-df = pd.read_csv("TB_PATIENT ADR DATASET.csv")  # Ensure the dataset is correct
+df = pd.read_csv("TB_PATIENT ADR DATASET.csv")
 
 # Convert weight (e.g., "32kg") to a number
 df["weight"] = df["weight"].str.replace("kg", "", regex=True).astype(float)
 
-# Handle missing values (Fill with 'Unknown' for categories and median for numbers)
-df.fillna({
-    "drug_name": "Unknown",
-    "sex": "Unknown",
-    "disease_status": "Unknown",
-    "dosage": "Unknown",
-    "dose_duration": "Unknown",
-    "comorbidities": "none",
-    "lifestyle_factors": "none",
-    "pregnancy": "none",
-    "pregnancy_month": "0",
-    "genetic_factors": "Unknown",
-    "concomitant_medicine": "Unknown"
-}, inplace=True)
+# Handle missing values
+df.fillna("Unknown", inplace=True)
 
-# Fill missing numerical values with the median
-for col in ["weight", "ast(10-40)", "alt(5-30)", "alp(150-280)"]:
-    df[col].fillna(df[col].median(), inplace=True)
+# Select text-based features
+text_columns = ["drug_name", "dosage", "comorbidities", "concomitant_medicine", "disease_status"]
 
-# Target variables (Now includes pharmacokinetics, pharmacodynamics, and drug interactions)
+# Convert text columns to a combined string for NLP processing
+df["combined_text"] = df[text_columns].apply(lambda x: " ".join(x), axis=1)
+
+# Target variables
 target_columns = ["adr", "symptoms", "suggestions", "pharmacokinetics", "pharmacodynamics", "drug_interactions"]
-X = df.drop(columns=target_columns)
+X = df["combined_text"]  # Use combined text as features
 y = df[target_columns]
 
-# Convert categorical features to numerical using Label Encoding
-label_encoders = {}
-for col in X.select_dtypes(include=["object"]).columns:
-    le = LabelEncoder()
-    X[col] = le.fit_transform(X[col])
-    label_encoders[col] = le  # Store encoder for later use
+# Convert text into numerical features using TF-IDF
+vectorizer = TfidfVectorizer()
+X_transformed = vectorizer.fit_transform(X)  # Convert text to numerical representation
 
-# Split the dataset
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Save the vectorizer for future use
+joblib.dump(vectorizer, "text_vectorizer.pkl")
 
-# Train model
+# Split dataset
+X_train, X_test, y_train, y_test = train_test_split(X_transformed, y, test_size=0.2, random_state=42)
+
+# Train the model
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 
-# Save the model and encoders
+# Save the model
 joblib.dump(model, "adr_prediction_model.pkl")
-joblib.dump(label_encoders, "label_encoders.pkl")
 
-print("✅ Model training complete! Model and encoders saved.")
+print("✅ Model trained with text-based features and saved successfully!")
