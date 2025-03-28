@@ -24,7 +24,6 @@ target_columns = ["adr", "symptoms", "suggestions", "pharmacokinetics", "pharmac
 X = df["combined_text"]  # Use combined text as features
 y = df[target_columns]
 
-
 # Convert text into numerical features using TF-IDF
 vectorizer = TfidfVectorizer()
 X_transformed = vectorizer.fit_transform(X)  # Convert text to numerical representation
