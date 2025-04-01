@@ -4,7 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 import joblib
 
-df = pd.read_csv("TB_PATIENT ADR DATASET.csv")
+df = pd.read_csv("cleaned_dataset.csv")
 
 df["weight"] = df["weight"].str.replace("kg", "", regex=True).astype(float)
 
@@ -31,3 +31,4 @@ model.fit(X_train, y_train)
 joblib.dump(model, "adr_prediction_model.pkl")
 
 print("✅ Model trained with text-based features and saved successfully!")
+
