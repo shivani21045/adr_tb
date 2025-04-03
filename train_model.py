@@ -4,7 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 import joblib
 
-df = pd.read_csv("cleaned_dataset.csv")
+df = pd.read_csv("TB_PATIENT ADR DATASET.csv")
 
 df["weight"] = df["weight"].str.replace("kg", "", regex=True).astype(float)
 
