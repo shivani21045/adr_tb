@@ -91,8 +91,9 @@ def get_user_input():
                     if user_data[col] in label_encoders[col].classes_:
                         user_data[col] = label_encoders[col].transform([user_data[col]])[0]
                     else:
-                        print(
-                            Fore.RED + f"❌ Invalid input! '{user_data[col]}' is not recognized. Please enter a valid value.")
+                        allowed = ', '.join(label_encoders[col].classes_)
+                        print(Fore.RED + f"❌ Invalid input! '{user_data[col]}' is not recognized for '{col}'.")
+                        print(Fore.YELLOW + f"✅ Allowed values for '{col}': {allowed}")
                         return get_user_input()
             except ValueError:
                 print(Fore.RED + f"❌ Unexpected error encoding '{user_data[col]}'. Please enter a valid value.")
