@@ -146,6 +146,7 @@ def predict_adr():
         table.add_row(param, value)
         table.add_section()
 
+
     console.print("\n")
     console.print(table)
     console.print("\n")
